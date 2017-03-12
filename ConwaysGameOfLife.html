@@ -3,11 +3,14 @@
 <head>
 	<title>Game of Life Test</title>
 	<style>
+		body {
+			background: #ccc;
+		}
 		.box {
 			width: 20px;
 			height: 20px;
 			margin: 0px 1px 0px 1px;
-			background: #666;
+			background: #444;
 			display: inline-block;
 		}
 
@@ -25,8 +28,8 @@
 	<button id='reset'>Reset</button>
 
 	<script>
-		var width = 25;
-		var height = 25;
+		var width = 24;
+		var height = 24;
 		var gridNode = document.getElementById('grid');
 
 		// Create an array of boxes
