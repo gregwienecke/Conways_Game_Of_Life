@@ -1,489 +1,202 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Conway's Game Of Life</title>
+	<title>Game of Life Test</title>
+	<style>
+		.box {
+			width: 20px;
+			height: 20px;
+			margin: 0px 1px 0px 1px;
+			background: #666;
+			display: inline-block;
+		}
+
+		.box[state=true]{
+			background: lightgreen;
+		}
+	</style>
 </head>
 <body>
-	<table id="grid"></table>
+	<div id="grid"></div>
 	<br>
-	<button id="next">Next Generation</button>
+	<button>Next</button>
+	<button id="run">Auto Run</button>
+	<button id='stop'>Stop</button>
+	<button id='reset'>Reset</button>
 
 	<script>
-		// Creates a DOM table grid
-		function createGrid(){
-			var num = 10;
-			var grid = document.querySelector('#grid');
-			for (var row = 0; row < num; row++){
-				// Create a row
-				var tr = document.createElement('tr');
-				grid.appendChild(tr);
+		var width = 25;
+		var height = 25;
+		var gridNode = document.getElementById('grid');
 
-				// Add len boxes in tds to the row
-				for (var col = 0; col < num; col++){
+		// Create an array of boxes
+		function createArray(){
+			var boxes = [];
+			for (var x = 0; x < width; x++){
+				for (var y = 0; y < height; y++){
+					var box = document.createElement('div');
+					box.setAttribute('class', 'box');	
+					boxes.push(box);
+				}
+			}
+			return boxes;
+		}
 
-
-					var td = document.createElement('td');
-					tr.appendChild(td);
-
-					var box = document.createElement('input');
-					box.setAttribute('type', 'checkbox');
-					box.setAttribute('aliveneighbors', 0);
-					// Randomly set checkboxes to true or false
-					if (Math.random() > .5){
-						box.setAttribute('checked', true);
-					}
-					td.appendChild(box);
+		// Create grid from array
+		function createGridFromArray(array){
+			var count = 0;
+			for (var i = 0; i < array.length; i++){
+				count += 1;
+				gridNode.appendChild(array[i]);
+				if (count % width == 0){
+					gridNode.appendChild(document.createElement('br'));
 				}
 			}
 		}
-		createGrid();
 
-		// Creates an array of arrays from the DOM table grid, each sub-array contains checkbox elements
-		function buildArray(){
+
+		// Create array from grid (returns array of only boxes, removes the br elements)
+		function createArrayFromGrid(grid){
 			var gridArray = [];
-
-			var table = document.querySelector('table');
-			// rows is an array of tr elements
-			var rows = table.querySelectorAll('tr');
-
-			for (var i = 0; i < rows.length; i++){
-				var rowArray = [];
-				// currentRow is a tr element
-				var currentRow = rows[i];
-				// currentRow is an array of td elements
-				currentRow = currentRow.childNodes;
-				//console.log(currentRow);
-				currentRow.forEach(function(td){
-					rowArray.push(td.childNodes[0]);
-				});
-				gridArray.push(rowArray);
-			}
+			var children = grid.childNodes;
+			children.forEach(function(ch){
+				if (ch.nodeName == 'DIV'){
+					gridArray.push(ch);	
+				}
+				
+			});
 			return gridArray;
 		}
-		var gridArray = buildArray();
-
-
-
-
-		function searchNeighbors(element, x, y){
-			// console.log('row ' + x);
-			// console.log('col ' + y);
-			// console.log(element);
-
-			var aliveneighbors = element.getAttribute('aliveneighbors');
-			aliveneighbors = parseInt(aliveneighbors);
-			var len = gridArray[0].length -1;
-
-			//if top-left (x=0, y=0)
-			if (x == 0 && y == 0){
-				//console.log('test top left');
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//br
-				if (gridArray[row+1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-			//else if top-right (x=0, y=length-1)
-			} else if (x == 0 && y == len){
-				//console.log('test top right');
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//bl
-				if (gridArray[row+1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
+		
+		// Randomize state of each box of a grid
+		function randomizeState(grid){
+			var boxes = grid.childNodes;
+			boxes.forEach(function(box){
+				if (Math.random() > .5){
+					box.setAttribute('state', true);
 				}				
+			})
 
-			//else if bottom-left (x=0, y=length-1)
-			} else if (x == len && y == 0){
-				//console.log('test bottom left');
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
+		}
 
-				//tr
-				if (gridArray[row-1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}	
+		//Count neighbors
+		function countNeighbors(array, x, y) {
+    		var count = 0;
+    		for (var x1 = Math.max(0, x - 1); x1 <= Math.min(width - 1, x + 1); x1++) {
+      			for (var y1 = Math.max(0, y - 1); y1 <= Math.min(height - 1, y + 1); y1++) {
+        			if ((x1 != x || y1 != y) && array[x1 + y1 * height]){
+						var current = array[x1 + y1 * height];
+						if (current.getAttribute('state')){
+							count += 1;	
+						};
+          			}
+      			}
+    		}
+    		return count;
+  		}	
 
-			//else if bottom-right (x=length-1, y=length-1)
-			} else if (x == len && y == len){
-				//console.log('test bottom right');
-				// tl
-				if (gridArray[row-1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
+  		// Loop over gridArray, Count neighbors, create array of neighbor data
+  		function createNeighborsArray(array){
+  			var neighborsArray = [];
+  			for (var x = 0; x < width; x++){
+  				for (var y = 0; y < height; y++){
+  					var neighbors = countNeighbors(array, y, x);
+  					neighborsArray.push(neighbors);
+  				}
+  			}
+  			return neighborsArray;
+  		}
 
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}	
+		function createNextGenerationArray(currentArray, neighborsArray){
+			var nextGenerationArray = [];
+			for (var i = 0; i < currentArray.length; i++){
+				
+				var currentBox = currentArray[i];
+				var currentNeighborCount = neighborsArray[i];
 
-			//else if bottom (x=length-1)
-			} else if (x == len && y > 0 && y < len){
-				//console.log('test bottom');
-				// tl
-				//console.log(gridArray[row][i].checked);
-				if (gridArray[row-1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//tr
-				if (gridArray[row-1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}			
-
-			//else if top (x=0)
-			} else if (x == 0){
-				//console.log('test top');
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//bl
-				if (gridArray[row+1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//br
-				if (gridArray[row+1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}				
-
-			//else if left (y=0)
-			} else if (y == 0 && x > 0 && x < len){
-				//console.log('test left');
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//tr
-				if (gridArray[row-1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//br
-				if (gridArray[row+1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-			//else if right (y=length-1)
-			} else if (y == len){
-				//console.log('test right');
-				// tl
-				if (gridArray[row-1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//bl
-				if (gridArray[row+1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-			//else
-			} else {
-			// tl
-				if (gridArray[row-1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				// t
-				if (gridArray[row-1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//tr
-				if (gridArray[row-1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//l
-				if (gridArray[row][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//current
-				// gridArray[row][i]
-
-				//r
-				if (gridArray[row][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//bl
-				if (gridArray[row+1][i-1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//b
-				if (gridArray[row+1][i].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
-				}
-
-				//br
-				if (gridArray[row+1][i+1].checked){
-					aliveneighbors = element.getAttribute('aliveneighbors');
-					aliveneighbors = parseInt(aliveneighbors);
-					element.setAttribute('aliveneighbors', aliveneighbors + 1);
+				// If currentBox is 'alive'
+				if (currentBox.getAttribute('state')){
+					// If it has less than 2 or more than three live neighbors
+					// Next generation dies (Create box with state = false)
+					if (currentNeighborCount < 2 || currentNeighborCount > 3){
+						//console.log('dies');
+						var box = document.createElement('div');
+						box.setAttribute('class', 'box');
+						nextGenerationArray.push(box);
+					// If it has 2 or 3 live neighbors
+					// Next generation lives (Create box with state = true)
+					} else {
+						//console.log('lives');
+						var box = document.createElement('div');
+						box.setAttribute('class', 'box');
+						box.setAttribute('state', true);
+						nextGenerationArray.push(box);	
+					}
+				//Else currentBox is 'dead'
+				} else {
+					// If it has 3 live neighbors, next generation is born (Create new box state = true)
+					if (currentNeighborCount == 3){
+						//console.log('born');
+						var box = document.createElement('div');
+						box.setAttribute('class', 'box');
+						box.setAttribute('state', true);
+						nextGenerationArray.push(box);	
+					// Else no next generation (Create new box with state = false)
+					} else {
+						//console.log('still dead');
+						var box = document.createElement('div');
+						box.setAttribute('class', 'box');
+						nextGenerationArray.push(box);
+					}
 				}
 			}
+			return nextGenerationArray;
 		}
 
 
+		function setUp(){
+	  		// Create the initial array
+			var boxes = createArray();
 
-		//function loopThroughGrid(){
-			// For each row in gridArray
-			for (var row = 0; row < gridArray[0].length; row++){
-				var currentRow = gridArray[row];
-				//	console.log("Row " + row);
+			// Clear the DOM node
+			gridNode.innerHTML = "";
 
-				// If first row
-				if (row == 0){
-					// for each box in the current row
-					for (var i = 0; i < gridArray[0].length; i++){
+			// Create DOM grid from array
+			createGridFromArray(boxes);
 
-						// If first row, first col
-						if (i == 0){
-							// Search r, br, b
-							searchNeighbors(currentRow[i], row, i);
-						// If first row, last col
-						} else if (i == currentRow.length - 1){
-							// Search l, bl, b
-							searchNeighbors(currentRow[i], row, i);
-						// First row, any other box
-						} else {
-							// Search l, bl, b, br, r
-							searchNeighbors(currentRow[i], row, i);
-
-						}
-
-					}
-
-				// If last row
-				} else if (row == gridArray[0].length - 1){
-					// for each box in the current row
-					for (var i = 0; i < gridArray[0].length; i++){
-
-						// If last row, first col
-						if (i == 0){
-							//Search t, tr, r
-							searchNeighbors(currentRow[i], row, i);
-
-						// If last row, last col
-						} else if (i == currentRow.length - 1){
-							// Search t, tl, l
-							searchNeighbors(currentRow[i], row, i);
-
-						// Last row, any other box
-						} else {
-							// Search l, tl, t, tr, r
-							searchNeighbors(currentRow[i], row, i);
-						}
-
-					}
-
-				// Any middle rows
-				} else {
-					// for each box in the current row
-					for (var i = 0; i < gridArray[0].length; i++){
-
-						// If first col
-						if (i == 0){
-							// Search t, tr, r, br, b
-							searchNeighbors(currentRow[i], row, i);
-						// If last col
-						} else if (i == currentRow.length - 1){
-							// Search t, tl, l, bl, b
-							searchNeighbors(currentRow[i], row, i);
-						// Any other box
-						} else {
-							// Search ALL neighbors
-							searchNeighbors(currentRow[i], row, i);
-						}
-
-					} // end for col
-
-				} // end if
-
-			} // end for row
-
-		//} // end function
+			// Randomly set state of each box to true
+			randomizeState(gridNode);
+		}
+		setUp();
 
 		function turn(){
-			var grid = buildArray();
-			for (var row = 0; row < grid[0].length; row++){
-				for (var col = 0; col < grid[0].length; col++){
-					var neighbs = grid[row][col].getAttribute('aliveneighbors');
-					// If it is a live cell
-					if (grid[row][col].checked){
-						if (parseInt(neighbs) < 2 || parseInt(neighbs) > 3){
-							grid[row][col].checked = false;
-						}
+			// Create new array from grid with randomized state attributes
+			var currentArray = createArrayFromGrid(gridNode);
+			// Create an array of all the state data
+			var neighborsArray = createNeighborsArray(currentArray);
 
-					// Else it is a dead cell
-					} else {
-						if (parseInt(neighbs) == 3){
-							grid[row][col].checked = true;
-						}
-					}
+			// Create next generation array
+			var nextGenerationArray = createNextGenerationArray(currentArray, neighborsArray);
 
-				}
-			}
+			// Clear the DOM 
+			document.getElementById('grid').innerHTML = "";
+
+			// Draw the new generation to the DOM
+			createGridFromArray(nextGenerationArray);
 		}
-		//turn();
 
-		document.querySelector('button').addEventListener('click', turn);
+
+		document.querySelectorAll('button')[0].addEventListener('click', turn);
+		document.querySelectorAll('button')[3].addEventListener('click', setUp);
+
+		var myVar;
+  		document.querySelector("#run").addEventListener("click", function() {
+    		myVar = setInterval(turn, 250);	
+    	});
+
+  		document.querySelector("#stop").addEventListener("click", function() {
+    		clearInterval(myVar);	
+    	});
 
 	</script>
 </body>
